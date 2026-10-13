@@ -1,0 +1,41 @@
+[package]
+name = "origo-overlay"
+version = "0.3.0"
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/ebiossanto/ia-research-mutacoreino"
+description = "Origo Overlay - Overlays Declarativos Seguros com ASTs Alfa-Estruturais para MutaCore"
+authors = ["Euzébio Soares <ebiossanto@github.com>"]
+categories = ["distributed-systems", "formal-verification", "security", "compilers"]
+keywords = ["ast", "alpha-equivalence", "krajicek", "formal-verification", "mutacore"]
+
+[dependencies]
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+ring = { workspace = true }
+sha2 = { workspace = true }
+rand = { workspace = true }
+zeroize = { workspace = true }
+bincode = { workspace = true }
+postcard = { workspace = true }
+nalgebra = { workspace = true }
+sprs = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+criterion = { workspace = true }
+
+[features]
+default = ["std"]
+std = []
+
+[lib]
+name = "origo_overlay"
+path = "src/lib.rs"
+
+[[bench]]
+name = "ast_validation_bench"
+harness = false

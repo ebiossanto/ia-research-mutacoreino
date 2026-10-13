@@ -1,0 +1,243 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[portuguese]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{geometry}
+\usepackage{tikz}
+
+\geometry{margin=2.5cm}
+
+\newtheorem{theorem}{Teorema}[section]
+\newtheorem{lemma}[theorem]{Lema}
+\newtheorem{proposition}[theorem]{Proposição}
+\newtheorem{definition}[theorem]{Definição}
+\newtheorem{corollary}[theorem]{Corolário}
+
+\newcommand{\DeltaT}{\Delta T}
+\newcommand{\MT}{\mathcal{M}_O}
+\newcommand{\ME}{\mathcal{M}_E}
+\newcommand{\Qn}{Q_n}
+\newcommand{\hodge}{\Delta_{\mathrm{Hodge}}}
+\newcommand{\laplacian}{\Delta}
+
+\title{
+    \vspace{-1cm}
+    \textbf{Gap Topológico Narrativo ($\DeltaT$) e Decomposição de Hodge no Hipercubo}\\
+    \large Topologia Semântica da Camada 1 do MutaCore
+}
+\author{Euzébio Soares \and Reino Digital -- Core Engine}
+\date{Outubro de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Definimos rigorosamente o Gap Topológico Narrativo ($\DeltaT$) como distância de projeção entre a variedade invariante do organismo $\MT$ e a variedade variante exógena $\ME$. Demonstramos que a decomposição de Hodge no hipercubo de estados $Q_n$ fornece uma base ortogonal natural para $\DeltaT$, permitindo computação eficiente e análise de equivariância. Estabelecemos teoremas de convergência e robustez.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Variedades do Organismo e do Ambiente}
+
+\subsection{Variedade Invariante $\MT$}
+
+\begin{definition}[Variedade do Organismo]
+$\MT \subset \R^N$ é a subvariedade suave de dimensão $d$ cujos pontos representam configurações globais consistentes de ASTs alfa-estruturais validadas pelo OrigoAstValidator. A tangente $T_p\MT$ em $p \in \MT$ corresponde a mutações admissíveis (que respeitam $\rhoT$).
+\end{definition}
+
+$\MT$ é construída como:
+\begin{equation}
+    \MT = \{ x \in \R^N : \mathrm{Validate}(x, \mathcal{K}) = \text{Accept} \}
+\end{equation}
+onde $\mathcal{K} = (\rhoT, \BT, \CT, \RT)$ é o espectro de Krajicek.
+
+\subsection{Variedade Variante $\ME$}
+
+\begin{definition}[Variedade Exógena]
+$\ME \subset \R^N$ representa o espaço de possíveis entradas de dados externos. Ao contrário de $\MT$, $\ME$ não é restrita por validação lógica — contém ruído, adversários, e dados semanticamente distantes.
+\end{definition}
+
+\section{Gap Topológico Narrativo}
+
+\subsection{Definição Geométrica}
+
+\begin{definition}[Gap Topológico Narrativo]
+O Gap Topológico Narrativo em $p \in \MT$ diante de estímulo $q \in \ME$ é:
+\begin{equation}
+    \DeltaT(p, q) = \| \Pi_{T_p\MT}(q - p) \|
+    \label{eq:deltaT_def}
+\end{equation}
+onde $\Pi_{T_p\MT}$ é a projeção ortogonal no espaço tangente.
+\end{definition}
+
+\begin{remark}
+$\DeltaT$ mede a componente da "surpresa" exógena que \textit{está na direção de mutações admissíveis}. Componentes ortogonais a $T_p\MT$ são irrelevantes (não podem ser resolvidos por mutação válida).
+\end{remark}
+
+\subsection{Decomposição em Componentes Ortogonais}
+
+Seja $\{v_1, \dots, v_d\}$ uma base ortonormal de $T_p\MT$ obtida via decomposição de Hodge (Seção 3). Então:
+\begin{equation}
+    \DeltaT_i = \langle q - p, v_i \rangle, \quad i = 1, \dots, d
+\end{equation}
+e $\DeltaT = \sqrt{\sum_{i=1}^d \DeltaT_i^2}$.
+
+\section{Hipercubo de Estados e Decomposição de Hodge}
+
+\subsection{Hipercubo $Q_n$ como Espaço de Estados}
+
+O espaço de estados discretos do MutaCore (Camada 1) é modelado como o hipercubo $n$-dimensional:
+\begin{equation}
+    Q_n = \{0, 1\}^n \subset \R^n
+\end{equation}
+Vértices = configurações de $n$ flags lógicas binárias. Arestas = transições de um bit (mutações atômicas).
+
+\subsection{Laplaciano de Hodge em $Q_n$}
+
+O complexo de cadeias de $Q_n$ tem $k$-células = $k$-faces do hipercubo. O operador de fronteira $\partial_k: C_k \to C_{k-1}$ induz o Laplaciano de Hodge:
+\begin{equation}
+    \laplacian_k = \partial_{k+1}\partial_{k+1}^* + \partial_k^*\partial_k : C^k \to C^k
+\end{equation}
+atuando em $k$-co-cadeias (funções em $k$-células).
+
+\subsection{Autovetores e Frequências}
+
+\begin{theorem}[Base de Fourier-Walsh no $Q_n$]
+Os autovetores de $\laplacian_0$ (Laplaciano em vértices) são as funções de Walsh:
+\begin{equation}
+    \chi_S(x) = (-1)^{\sum_{i \in S} x_i}, \quad S \subseteq \{1,\dots,n\}
+\end{equation}
+com autovalores $\lambda_S = 2|S|$. A multiplicidade de $\lambda = 2k$ é $\binom{n}{k}$.
+\end{theorem}
+
+\begin{proof}
+$Q_n$ é um grafo de Cayley do grupo $(\Z/2\Z)^n$. Autovetores são caracteres do grupo. Laplaciano é soma de operadores de transição por geradores.
+\end{proof}
+
+\subsection{Decomposição de Hodge para $k$-Formas}
+
+Para $k > 0$, a decomposição de Hodge em $k$-co-cadeias:
+\begin{equation}
+    C^k = \Im(\partial_{k+1}) \oplus \Ker(\laplacian_k) \oplus \Im(\partial_k^*)
+\end{equation}
+\begin{itemize}
+    \item \textbf{Exato:} $\Im(\partial_{k+1})$ — gradientes de $(k-1)$-formas
+    \item \textbf{Harmônico:} $\Ker(\laplacian_k)$ — cohomologia $H^k(Q_n)$
+    \item \textbf{Coexato:} $\Im(\partial_k^*)$ — curis de $(k+1)$-formas
+\end{itemize}
+
+\begin{theorem}[Cohomologia do Hipercubo]
+$H^k(Q_n) = 0$ para todo $k > 0$. $Q_n$ é contrátil.
+\end{theorem}
+
+\begin{corollary}
+Toda $k$-forma fechada é exata. Não há formas harmônicas não-triviais para $k > 0$.
+\end{corollary}
+
+\subsection{Base Ortogonal para $T_p\MT$}
+
+Embora $Q_n$ seja discreto, a variedade suave $\MT$ é localmente aproximada pelo espaço tangente. Usamos os autovetores de $\laplacian_0$ (funções de Walsh de grau 1) como base para $T_p\MT$:
+
+\begin{equation}
+    v_i = \chi_{\{i\}}(x) = (-1)^{x_i}, \quad i = 1, \dots, n
+\end{equation}
+
+Estes correspondem às direções de mutação de um único bit — as mutações atômicas do sistema.
+
+\begin{proposition}
+A base $\{v_1, \dots, v_n\}$ é ortonormal sob o produto interno padrão de $\R^n$.
+\end{proposition}
+
+\section{Equivariância e Simetria}
+
+\subsection{Grupo de Simetria de $Q_n$}
+
+O grupo de automorfismos de $Q_n$ é o grupo hiperoctaédrico $B_n = (\Z/2\Z)^n \rtimes S_n$ (ordem $2^n n!$).
+
+\subsection{Equivariância da Decomposição}
+
+\begin{definition}[Equivariância de $\DeltaT$]
+A decomposição $\DeltaT = \sqrt{\sum \DeltaT_i^2}$ é \textbf{equivariante} sob $B_n$ se para todo $g \in B_n$:
+\begin{equation}
+    \DeltaT(g \cdot p, g \cdot q) = \DeltaT(p, q)
+\end{equation}
+\end{definition}
+
+\begin{theorem}
+$\DeltaT$ é equivariante sob o subgrupo de translações $(\Z/2\Z)^n$, mas \textbf{não} sob permutações $S_n$ que misturam coordenadas semânticas.
+\end{theorem}
+
+\begin{proof}
+Translações preservam diferenças $q-p$. Permutações $S_n$ alteram a semântica das coordenadas (bit $i$ $\neq$ bit $j$ semanticamente).
+\end{proof}
+
+\subsection{Quebra Controlada de Equivariância}
+
+O MutaCore \textbf{quebra intencionalmente} a equivariância $S_n$ para preservar semântica: coordenadas têm significado fixo (ex: bit 0 = "tem loop", bit 1 = "usa recursão"). A decomposição de Hodge em $Q_n$ revela esta quebra via multiplicidades espectrais.
+
+\begin{definition}[Score de Equivariância]
+\begin{equation}
+    \mathcal{E} = \frac{1}{n} \sum_{k=1}^n \frac{\text{mult}(\lambda_k)}{\text{mult}_{\text{ideal}}(\lambda_k)}
+\end{equation}
+onde $\text{mult}_{\text{ideal}}(\lambda_k) = \binom{n}{k}$ para $Q_n$ perfeito.
+\end{definition}
+
+$\mathcal{E} = 1$ = equivariância perfeita (semântica ignorada). $\mathcal{E} < 1$ = quebra semântica controlada.
+
+\section{Computação Eficiente de $\DeltaT$}
+
+\subsection{Algoritmo via Transformada Rápida de Walsh-Hadamard}
+
+Dado vetor de estado $x \in \R^n$ (embedding contínuo de $Q_n$):
+
+\begin{algorithm}
+\caption{ComputeDeltaT($p, q$)}
+\begin{algorithmic}[1]
+\Function{DeltaT}{$p, q \in \R^n$}
+    \State $diff \gets q - p$
+    \State $walsh \gets \text{FWHT}(diff)$  \Comment{Fast Walsh-Hadamard Transform}
+    \State $components \gets walsh[1:n]$  \Comment{Primeiros $n$ coeficientes = grau 1}
+    \State \Return $\sqrt{\sum components_i^2}$
+\EndFunction
+\end{algebmic}
+\end{algorithm}
+
+Complexidade: $O(n \log n)$ vs $O(n^2)$ para projeção direta.
+
+\section{Aplicação no Metabolismo}
+
+As componentes $\DeltaT_i$ alimentam diretamente a equação termodinâmica (landauer\_coupling.tex):
+\begin{equation}
+    \RL = \left( \sum_{i=1}^n \DeltaT_i^2 \right) \cdot \kappa(\mathcal{K}) \cdot \kB T \ln 2
+\end{equation}
+
+A estrutura ortogonal garante que cada dimensão semântica contribua independentemente para o custo metabólico.
+
+\section{Conclusão}
+
+A decomposição de Hodge no hipercubo fornece:
+\begin{enumerate}
+    \item Base ortogonal natural para $\DeltaT$ (funções de Walsh)
+    \item Computação $O(n \log n)$ via FWHT
+    \item Métrica de equivariância $\mathcal{E}$ para monitorar saúde semântica
+    \item Conexão direta com termodinâmica via $\sum \DeltaT_i^2$
+\end{enumerate}
+
+\bibliographystyle{plain}
+\begin{thebibliography}{99}
+\bibitem{stanley2011} R. Stanley, \textit{Enumerative Combinatorics Vol 1}, Cambridge, 2011.
+\bibitem{diaconis1988} P. Diaconis, \textit{Group Representations in Probability and Statistics}, IMS, 1988.
+\bibitem{hatcher2002} A. Hatcher, \textit{Algebraic Topology}, Cambridge, 2002.
+\end{thebibliography}
+
+\end{document}

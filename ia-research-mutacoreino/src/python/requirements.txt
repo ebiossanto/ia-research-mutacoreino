@@ -1,0 +1,48 @@
+# MutaCore Python Dependencies
+# Core scientific computing
+numpy>=1.26.0
+scipy>=1.11.0
+pandas>=2.1.0
+
+# Linear algebra for Hodge matrices
+sympy>=1.12.0
+
+# Cryptography
+cryptography>=42.0.0
+pycryptodome>=3.19.0
+
+# Serialization
+msgpack>=1.0.7
+orjson>=3.9.0
+
+# Configuration
+pydantic>=2.5.0
+pyyaml>=6.0.1
+
+# CLI
+click>=8.1.0
+rich>=13.7.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+hypothesis>=6.92.0
+
+# Visualization
+matplotlib>=3.8.0
+seaborn>=0.13.0
+
+# Jupyter support
+jupyter>=1.0.0
+ipykernel>=6.27.0
+
+# Async
+asyncio>=3.4.3
+aiohttp>=3.9.0
+
+# Type checking
+mypy>=1.7.0
+types-requests>=2.31.0
+
+# Performance
+numba>=0.58.0

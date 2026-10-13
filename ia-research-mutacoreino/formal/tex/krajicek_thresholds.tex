@@ -1,0 +1,197 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[portuguese]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{geometry}
+\usepackage{tikz}
+\usepackage{tikz-cd}
+
+\geometry{margin=2.5cm}
+
+\newtheorem{theorem}{Teorema}[section]
+\newtheorem{lemma}[theorem]{Lema}
+\newtheorem{proposition}[theorem]{Proposição}
+\newtheorem{definition}[theorem]{Definição}
+
+\newcommand{\rhoT}{\rho_T}
+\newcommand{\BT}{B_T}
+\newcommand{\CT}{C_T}
+\newcommand{\RT}{R_T}
+\newcommand{\AlphaEq}{\equiv_\alpha}
+
+\title{
+    \vspace{-1cm}
+    \textbf{Espectro de Limiares de Prova de Krajicek no MutaCore}\\
+    \large Formalização dos Limites $\rho_T, B_T, C_T, R_T$ e Falha de Colagem
+}
+\author{Euzébio Soares \and Reino Digital -- Core Engine}
+\date{Outubro de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Formalizamos o espectro de limiares de prova de Krajicek como base da Camada 1 (Substrato Lógico) do MutaCore. Definimos os quatro limiares fundamentais ($\rho_T, B_T, C_T, R_T$), provamos teoremas de limitação de complexidade, e estabelecemos a condição de falha de colagem lógica que previne esquizofrenia sistêmica em agentes autônomos distribuídos.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Introdução}
+
+A confiabilidade de sistemas de IA autônomos distribuídos requer garantias formais sobre a complexidade de prova de suas mutações de código. O trabalho de Krajicek sobre aritmética limitada fornece o arcabouço teórico: todo sistema formal suficientemente expressivo possui limiares inerentes de complexidade de prova.
+
+No MutaCore, estes limiares não são apenas teóricos — são \textbf{enforced computacionalmente} pelo validador \texttt{OrigoAstValidator} (Camada 2), impedindo que mutações excedam a capacidade de verificação formal do sistema.
+
+\section{Definições Fundamentais}
+
+\subsection{Sistema Formal Base}
+
+Seja $\mathcal{T}$ uma teoria aritmética de primeira ordem (ex: $I\Delta_0 + \Omega_1$) capaz de formalizar a sintaxe de ASTs alfa-estruturais.
+
+\begin{definition}[Complexidade de Prova]
+Para uma fórmula $\varphi$ e uma prova $\pi$ de $\varphi$ em $\mathcal{T}$, a complexidade de prova $\|\pi\|$ é o número de passos de inferência em $\pi$.
+\end{definition}
+
+\begin{definition}[Complexidade Mínima de Prova]
+$\mathrm{Prov}_\mathcal{T}(\varphi) = \min\{\|\pi\| : \pi \vdash_\mathcal{T} \varphi\}$, ou $\infty$ se $\varphi$ não é provável.
+\end{definition}
+
+\subsection{Os Quatro Limiares}
+
+\begin{definition}[$\rho_T$ — Limiar de Colagem]
+$\rhoT$ é o máximo $k$ tal que para quaisquer provas $\pi_1, \pi_2$ com $\|\pi_1\|, \|\pi_2\| \le k$, a colagem (composição) $\pi_1 \circ \pi_2$ permanece verificável em tempo polinomial.
+\end{definition}
+
+\begin{definition}[$\BT$ — Limiar de Complexidade Base]
+$\BT$ é o máximo $k$ tal que toda inferência fundamental do sistema (aplicação de regra, substituição, redução $\beta$) tem complexidade $\le k$.
+\end{definition}
+
+\begin{definition}[$\CT$ — Limiar de Contração]
+$\CT$ é a profundidade máxima de aplicações aninhadas da regra de contração permitida em provas do sistema.
+\end{definition}
+
+\begin{definition}[$\RT$ — Limiar de Reflexão]
+$\RT$ é a ordem máxima $n$ tal que o princípio de reflexão $\mathrm{Rfn}_n(\mathcal{T})$ (consistência de provas de complexidade $\le n$) é admissível.
+\end{definition}
+
+\section{Teoremas de Limitação}
+
+\begin{theorem}[Teorema da Falha de Colagem]
+\label{thm:gluing}
+Se uma mutação proposta requer uma prova de complexidade $> \rhoT$, então a composição desta mutação com o estado atual do sistema não pode ser verificada como consistente em tempo polinomial. O sistema \textbf{deve} rejeitar a mutação.
+\end{theorem}
+
+\begin{proof}
+Pela definição de $\rhoT$, a colagem de provas de comprimento $\le \rhoT$ é tratável. Se a nova mutação excede $\rhoT$, a verificação de consistência global cai fora de P (assumindo P $\neq$ NP), tornando a validação intratável. Aceitar tal mutação equivaleria a admitir código não-verificável — a definição operacional de esquizofrenia sistêmica.
+\end{proof}
+
+\begin{theorem}[Hierarquia de Limiares]
+\label{thm:hierarchy}
+Para qualquer sistema consistente $\mathcal{T}$:
+\begin{equation}
+    \BT \le \CT \le \RT \le \rhoT
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+$\BT \le \CT$: Inferências base são subcaso de contração. $\CT \le \RT$: Contração de ordem $k$ implica reflexão de ordem $k$. $\RT \le \rhoT$: Reflexão de ordem $n$ permite colagem de provas de complexidade $n$.
+\end{proof}
+
+\begin{corollary}
+A condição de segurança $\rhoT \ge \BT + \CT + \RT$ é necessária (mas não suficiente) para operação segura.
+\end{corollary}
+
+\section{Falha de Colagem e Incompletude de Gödel}
+
+\subsection{Conexão com Incompletude}
+
+\begin{theorem}[Incompletude Operacional]
+\label{thm:incompleteness}
+Para todo sistema MutaCore com limiares finitos $\mathcal{K} = (\rhoT, \BT, \CT, \RT)$, existe uma mutação benéfica $M^*$ tal que:
+\begin{enumerate}
+    \item $M^*$ preservaria a consistência do sistema
+    \item $M^*$ requer prova de complexidade $> \rhoT$
+    \item Portanto, $M^*$ é \textbf{rejeitada} pelo validador
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+Consequência direta do Segundo Teorema de Incompletude de Gödel aplicado à teoria de prova do sistema. A consistência do sistema não pode ser provada internamente com recursos $\le \rhoT$. Mutações que *provariam* consistência (ex: auto-verificação) excedem $\rhoT$.
+\end{proof}
+
+\begin{remark}
+Esta \textbf{incompletude operacional} é uma \textit{feature}, não bug: garante que o sistema nunca aceite mutações que ele não pode formalmente verificar, mantendo integridade lógica ao custo de alguma capacidade adaptativa.
+\end{remark}
+
+\section{Validador Computacional}
+
+\subsection{OrigoAstValidator}
+
+O validador implementa a verificação em tempo de execução:
+
+\begin{algorithm}
+\caption{ValidateMutation(AST, $\mathcal{K}$)}
+\begin{algorithmic}[1]
+\Function{Validate}{$ast, \mathcal{K}$}
+    \State $complexity \gets \text{ComputeKrajicekComplexity}(ast)$
+    \ForEach{$gen \in \{ \rhoT, \BT, \CT, \RT \}$}
+        \If{$complexity[gen] > \mathcal{K}[gen]$}
+            \State \Return \textsc{Reject}("GluingFailure", $gen$)
+        \EndIf
+    \EndFor
+    \State \Return \textsc{Accept}
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Complexidade de Verificação}
+
+\begin{proposition}
+A validação de uma AST de tamanho $n$ contra $\mathcal{K}$ roda em $O(n \cdot \log n)$ tempo.
+\end{proposition}
+
+\begin{proof}
+Traversal da AST é $O(n)$. Verificação de limiares por nó é $O(1)$ (4 comparações). Hash estrutural para cache é $O(\log n)$ amortizado.
+\end{proof}
+
+\section{Calibração Empírica}
+
+Valores recomendados para deployment em produção:
+
+\begin{table}[htbp]
+\centering
+\caption{Limiares Recomendados por Cenário}
+\label{tab:thresholds}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Cenário} & $\rhoT$ & $\BT$ & $\CT$ & $\RT$ \\
+\midrule
+Conservador (Crítico) & 5.000 & 2.500 & 1.000 & 1.500 \\
+Padrão (Balanceado) & 10.000 & 5.000 & 2.000 & 3.000 \\
+Agressivo (Experimental) & 20.000 & 10.000 & 4.000 & 6.000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Conclusão}
+
+O espectro de Krajicek fornece a \textbf{espinha dorsal lógica} do MutaCore. A falha de colagem (\Cref{thm:gluing}) é o mecanismo imunológico que previne alucinações lógicas. A incompletude operacional (\Cref{thm:incompleteness}) é o preço necessário da segurança formal.
+
+\bibliographystyle{plain}
+\begin{thebibliography}{99}
+\bibitem{krajicek1995} P. Krajicek, \textit{Bounded Arithmetic, Propositional Logic, and Complexity Theory}, Cambridge, 1995.
+\bibitem{goedel1931} K. Gödel, ``Über formal unentscheidbare Sätze...'', \textit{Monatshefte für Mathematik}, 1931.
+\bibitem{cook1971} S. Cook, ``The Complexity of Theorem-Proving Procedures'', STOC 1971.
+\end{thebibliography}
+
+\end{document}

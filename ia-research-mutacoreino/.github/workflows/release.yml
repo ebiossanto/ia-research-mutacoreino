@@ -1,0 +1,110 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      
+      - name: Install dependencies
+        run: |
+          cd src/python
+          pip install -r requirements.txt
+          pip install build twine
+      
+      - name: Build Rust artifacts
+        run: |
+          cargo build --workspace --release
+          # Create release archives
+          mkdir -p release/rust
+          cp target/release/liborigo_overlay* release/rust/ 2>/dev/null || true
+          cp target/release/origo-overlay* release/rust/ 2>/dev/null || true
+      
+      - name: Build Python package
+        run: |
+          cd src/python
+          python -m build --wheel --sdist
+          mkdir -p ../../release/python
+          cp dist/* ../../release/python/
+      
+      - name: Compile LaTeX docs
+        uses: xu-cheng/latex-action@v3
+        with:
+          texlive_version: 2023
+          packages: amsmath amsfonts amssymb amsthm mathtools graphicx booktabs hyperref cleveref algorithm algpseudocode geometry xcolor tikz tikz-cd listings
+        run: |
+          cd formal/tex
+          for f in mutacore_architecture landauer_coupling krajicek_thresholds delta_t_topology; do
+            latexmk -pdf -interaction=nonstopmode "$f.tex"
+            cp "$f.pdf" ../../release/
+          done
+      
+      - name: Generate changelog
+        run: |
+          # Extract changes since last tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            git log --pretty=format:"- %s (%an)" $PREV_TAG..HEAD > release/CHANGES.md
+          else
+            git log --pretty=format:"- %s (%an)" > release/CHANGES.md
+          fi
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/rust/*
+            release/python/*
+            release/*.pdf
+            release/CHANGES.md
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Publish to crates.io
+        if: false  # Enable when ready
+        run: |
+          cargo publish --workspace --registry=crates-io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      
+      - name: Publish to PyPI
+        if: false  # Enable when ready
+        run: |
+          cd src/python
+          twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+
+  notify:
+    name: Notify Release
+    runs-on: ubuntu-latest
+    needs: release
+    steps:
+      - name: Success notification
+        run: |
+          echo "✅ Release ${{ github.ref_name }} published successfully"
+          # Add Discord/Slack webhook here

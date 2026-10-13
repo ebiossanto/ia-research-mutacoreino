@@ -1,0 +1,27 @@
+# Rustfmt configuration for MutaCore
+# Run with: cargo fmt --all
+
+edition = "2021"
+max_width = 100
+tab_spaces = 4
+hard_tabs = false
+brace_style = "SameLineWhere"
+imports_granularity = "Module"
+group_imports = "StdExternalCrate"
+reorder_imports = true
+reorder_modules = true
+normalize_comments = true
+comment_width = 90
+wrap_comments = true
+format_strings = true
+format_macro_matchers = true
+format_macro_bodies = true
+merge_derives = true
+newline_style = "Unix"
+empty_item_single_line = true
+fn_single_line = false
+where_single_line = false
+struct_lit_single_line = false
+enum_discrim_align = true
+use_field_init_shorthand = true
+use_try_shorthand = true

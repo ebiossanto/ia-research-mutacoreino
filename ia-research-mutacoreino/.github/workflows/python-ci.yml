@@ -1,0 +1,225 @@
+name: Python CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/python/**'
+      - 'requirements.txt'
+      - 'pyproject.toml'
+      - '.github/workflows/python-ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'src/python/**'
+      - 'requirements.txt'
+      - 'pyproject.toml'
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          cd src/python
+          pip install -r requirements.txt
+          pip install ruff black mypy
+      - name: Ruff check
+        run: |
+          cd src/python
+          ruff check src/ tests/
+      - name: Black check
+        run: |
+          cd src/python
+          black --check src/ tests/
+      - name: MyPy type check
+        run: |
+          cd src/python
+          mypy src/ --strict
+
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          cd src/python
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-benchmark hypothesis
+      - name: Run tests (fast)
+        run: |
+          cd src/python
+          pytest tests/ -v -m "not slow" --cov=src --cov-report=xml --cov-report=term-missing
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./src/python/coverage.xml
+          flags: python
+
+  test-slow:
+    name: Slow Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          cd src/python
+          pip install -r requirements.txt
+          pip install pytest pytest-cov hypothesis
+      - name: Run slow tests
+        run: |
+          cd src/python
+          pytest tests/ -v -m "slow" --timeout=300
+
+  property-tests:
+    name: Property-Based Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          cd src/python
+          pip install -r requirements.txt
+          pip install pytest hypothesis
+      - name: Run property tests
+        run: |
+          cd src/python
+          pytest tests/ -v -m "property" --hypothesis-show-statistics
+
+  spectrum1024:
+    name: SPECTRUM-1024 Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          cd src/python
+          pip install -r requirements.txt
+          pip install pytest
+      - name: Run bijectivity suite
+        run: |
+          cd src/python
+          python spectrum1024_tests.py --suite default --output spectrum1024_results.json
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: spectrum1024-results
+          path: src/python/spectrum1024_results.json
+          retention-days: 30
+      - name: Check baseline
+        run: |
+          cd src/python
+          # Compare with stored baseline
+          if [ -f ".github/baselines/spectrum1024_baseline.json" ]; then
+            python -c "
+            import json
+            with open('spectrum1024_results.json') as f:
+                current = json.load(f)
+            with open('.github/baselines/spectrum1024_baseline.json') as f:
+                baseline = json.load(f)
+            
+            current_rate = current['success_rate']
+            baseline_rate = baseline['success_rate']
+            
+            if current_rate < baseline_rate - 0.01:  # 1% regression
+                print(f'⚠️ Regression: {current_rate:.2%} vs {baseline_rate:.2%}')
+                exit(1)
+            print(f'✅ Success rate: {current_rate:.2%} (baseline: {baseline_rate:.2%})')
+            "
+
+  hodge:
+    name: Hodge Decomposition
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          cd src/python
+          pip install -r requirements.txt
+          pip install pytest scipy
+      - name: Run Hodge tests
+        run: |
+          cd src/python
+          python hodge_matrices.py --dimension 6 --output hodge_Q6.json
+          python hodge_matrices.py --dimension 7 --output hodge_Q7.json
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: hodge-results
+          path: src/python/hodge_Q*.json
+          retention-days: 30
+
+  landauer:
+    name: Landauer Simulation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          cd src/python
+          pip install -r requirements.txt
+          pip install pytest
+      - name: Run simulation
+        run: |
+          cd src/python
+          python landauer_simulation.py --steps 200 --output landauer_results.json
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: landauer-results
+          path: src/python/landauer_results.json
+          retention-days: 30
+
+  notify:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [lint, test, test-slow, property-tests, spectrum1024, hodge, landauer]
+    if: failure()
+    steps:
+      - name: Send notification
+        run: |
+          echo "❌ Python CI failed"

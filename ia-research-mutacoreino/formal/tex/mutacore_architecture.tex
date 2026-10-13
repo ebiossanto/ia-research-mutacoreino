@@ -1,0 +1,364 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[portuguese]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{geometry}
+\usepackage{tikz}
+\usepackage{tikz-cd}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\geometry{margin=2.5cm}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=red,
+    urlcolor=blue
+}
+
+\lstset{
+    language=Rust,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    frame=single,
+    breaklines=true
+}
+
+\newtheorem{theorem}{Teorema}[section]
+\newtheorem{definition}[theorem]{Definição}
+
+\newcommand{\rhoT}{\rho_T}
+\newcommand{\BT}{B_T}
+\newcommand{\CT}{C_T}
+\newcommand{\RT}{R_T}
+\newcommand{\DeltaT}{\Delta T}
+\newcommand{\RL}{\mathcal{R}_L}
+
+\title{
+    \vspace{-1cm}
+    \textbf{Arquitetura Completa do MutaCore no Ecossistema Reino Digital}\\
+    \large Organismo Cibernético: Lógica, Transporte, Metabolismo e Governança
+}
+\author{Euzébio Soares \and Reino Digital -- Core Engine}
+\date{Outubro de 2026 -- Versão 4.0.26}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Apresentamos a arquitetura formal completa do MutaCore, o organismo cibernético central do ecossistema Reino Digital. O MutaCore unifica quatro camadas interdependentes: (1) Substrato Lógico com limiares de Krajicek/Gödel, (2) Transporte via Origo Overlay com ASTs alfa-estruturais, (3) Metabolismo Termodinâmico com acoplamento $\DeltaT \leftrightarrow \RL$, e (4) Membrana de Governança com dNFTs e oráculos contra-factuais. Formalizamos a dinâmica evolutiva, provamos propriedades de segurança, e especificamos interfaces de integração.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Visão Geral da Arquitetura}
+
+O MutaCore não é uma arquitetura de microsserviços tradicional. É um \textbf{organismo cibernético completo} onde cada camada mapeia para um sistema biológico análogo:
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Camada MutaCore} & \textbf{Análogo Biológico} & \textbf{Primitiva Computacional} \\
+\midrule
+1. Substrato Lógico & Esqueleto / Rigidez & Limiares de Prova (Krajicek/Gödel) \\
+2. Transporte & Sistema Nervoso & Origo Overlay / AST Alfa-Estrutural \\
+3. Metabolismo & Metabolismo / Hormônios & Resíduo de Landauer / $\DeltaT$ \\
+4. Membrana & Sistema Imune / Pele & dNFT Containers / Q-ESCUDO \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Princípios de Design}
+
+\begin{enumerate}
+    \item \textbf{Formal-First:} Toda mutação passa por validação de limiares de prova \textit{antes} da execução.
+    \item \textbf{Thermodynamic-Aware:} Custo energético (Landauer) é métrica de primeira classe, não afterthought.
+    \item \textbf{Alpha-Structural:} Código é transportado como ASTs canônicas, não texto — imune a renomeação.
+    \item \textbf{Distributed-by-Default:} Quantum Local Packing otimiza localidade em hipercubo de nós.
+    \item \textbf{Self-Governing:} Identidade e direitos via dNFTs; segurança física via oráculos contra-factuais.
+\end{enumerate}
+
+\section{Camada 1: Substrato Lógico e Criptográfico}
+
+\subsection{Espectro de Krajicek}
+
+A base lógica é o espectro $\mathcal{K} = (\rhoT, \BT, \CT, \RT)$ definido em \texttt{krajicek\_thresholds.tex}. 
+
+\begin{theorem}[Segurança Lógica]
+Nenhuma mutação com complexidade de prova $> \rhoT$ pode ser aceita pelo sistema.
+\end{theorem}
+
+\subsection{Equivariância no Hipercubo}
+
+Estados distribuídos são rastreados no hipercubo $Q_n$. A equivariância garante que todos os nós vejam o mesmo estado lógico sem travas centralizadas.
+
+\begin{equation}
+    \text{CustoEquivariância} = \sum_{i=1}^n \lambda_i \cdot \text{dist}(x_i, x_i')
+\end{equation}
+onde $\lambda_i$ são autovalores do Laplaciano de Hodge (ver \texttt{delta\_t\_topology.tex}).
+
+\subsection{Criptografia SPECTRUM-1024}
+
+Cifrador de bloco 1024-bit com prova de estabilidade bijectiva (ver \texttt{spectrum1024\_tests.py}).
+
+\section{Camada 2: Transporte, Comunicação e Distribuição}
+
+\subsection{Origo Overlay}
+
+Implementado em \texttt{origo-overlay} (Rust). Características:
+
+\begin{itemize}
+    \item \textbf{Overlays Declarativos:} Especificação de topologia de rede como dados, não código imperativo.
+    \item \textbf{AST Alfa-Estrutural:} Hash estrutural invariante sob $\alpha$-conversão (ver \texttt{hash.rs}).
+    \item \textbf{Validação Prévia:} \texttt{OrigoAstValidator} verifica limiares de Krajicek \textit{antes} da execução.
+\end{itemize}
+
+\subsection{Quantum Local Packing}
+
+Algoritmo de annealing quântico para alocação ótima de cargas (ver \texttt{quantum\_packing.rs}, \texttt{hodge\_matrices.py}).
+
+\begin{equation}
+    \min_{\text{atribuição}} \sum_{i,j} w_{ij} \cdot d_{\text{hypercube}}(node_i, node_j) + \text{balanceamento}
+\end{equation}
+
+\section{Camada 3: Metabolismo Termodinâmico (MUTARIC)}
+
+\subsection{Acoplamento Fundamental}
+
+O coração do metabolismo é a equação (ver \texttt{landauer\_coupling.tex}):
+
+\begin{equation}
+    \RL = \left( \sum_{i=1}^{n} \DeltaT_i^2 \right) \cdot
+    \exp\left( \frac{\rhoT - \BT}{\CT \cdot \RT} \right) \cdot
+    \kB T \ln 2
+\end{equation}
+
+\subsection{Estados Metabólicos}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Estado} & \textbf{Condição} & \textbf{Comportamento} \\
+\midrule
+HOMEOSTASIS & $\RL$ baixo, $\DeltaT$ baixo & Operação normal, monitoramento \\
+EXPLORATION & $\RL$ baixo, $\DeltaT$ médio & Mutações ousadas, expansão \\
+ANXIETY & $\RL$ alto ou $\DeltaT$ alto & Contração, simplificação, safe-mode \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{ricemotions: Ponte PIXEL/RIC $\leftrightarrow$ TEOA}
+
+\begin{itemize}
+    \item \textbf{PIXEL:} Representação visual/espacial do estado
+    \item \textbf{RIC:} Código informacional reduzido (AST comprimida)
+    \item \textbf{TEOA:} Teoria Epistemológica de Objetos Abstratos (semântica)
+\end{itemize}
+
+O metabolismo processa $\text{PIXEL} \to \text{RIC} \to \text{TEOA}$ e monitora perda de informação (Landauer) em cada etapa.
+
+\section{Camada 4: Membrana, Governança e Identidade}
+
+\subsection{dNFT Containers}
+
+Cada agente/mutação é encapsulado em container governado por dNFT (Dynamic NFT):
+
+\begin{itemize}
+    \item \textbf{Identidade Genômica:} Hash da AST + linhagem evolutiva
+    \item \textbf{Metadados Imutáveis:} Armazenados on-chain (IPFS + blockchain)
+    \item \textbf{Direitos Autorais:} Registro automático de IP ao gerar código
+    \item \textbf{Evolução Rastreável:} Grafo de mutações pai $\to$ filho
+\end{itemize}
+
+\subsection{Q-ESCUDO: Oráculo Contra-Factual}
+
+Validação de segurança no mundo físico (NR-12 industrial):
+
+\begin{equation}
+    \text{Seguro}(a) \iff \forall w \in \mathcal{W}: \text{Counterfactual}(w, a) \models \text{NR-12}
+\end{equation}
+onde $\mathcal{W}$ é o espaço de mundos possíveis, $a$ a ação proposta.
+
+\section{Dinâmica Evolutiva: Ciclo de Vida}
+
+\begin{center}
+\begin{tikzpicture}[node distance=2cm, >=stealth]
+\node[draw, rectangle, rounded corners, fill=blue!10] (1) {1. Homeostase Estável};
+\node[draw, rectangle, rounded corners, fill=green!10, right of=1] (2) {2. Estímulo Exógeno};
+\node[draw, rectangle, rounded corners, fill=yellow!10, right of=2] (3) {3. Mutação Sintática};
+\node[draw, rectangle, rounded corners, fill=orange!10, right of=3] (4) {4. Filtro de Seleção};
+\node[draw, rectangle, rounded corners, fill=red!10, right of=4] (5) {5. Encapsulamento};
+
+\draw[->, thick] (1) -- (2);
+\draw[->, thick] (2) -- (3);
+\draw[->, thick] (3) -- (4);
+\draw[->, thick] (4) -- (5);
+\draw[->, thick, bend right=40] (5) to (1);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Descrição das Fases}
+
+\begin{enumerate}
+    \item \textbf{Homeostase:} Monitora $\RL$ e equivariância. Aguarda estímulo.
+    \item \textbf{Estímulo:} Dados via Origo Overlay. $\DeltaT$ mede distância semântica.
+    \item \textbf{Mutação:} Gera novas ASTs para resolver $\DeltaT$. Python/Rust.
+    \item \textbf{Filtro:} Validador aplica limiares $\mathcal{K}$. Rejeita se $> \rhoT$.
+    \item \textbf{Encapsulamento:} Aprova $\to$ assina dNFT $\to$ Quantum Packing $\to$ deploy.
+\end{enumerate}
+
+\section{Tabuleiro de Interações}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Atributo} & \textbf{Especificação Técnica} & \textbf{Objetivo} \\
+\midrule
+Substrato Execução & Rust (core) + Python (flex) & Latência mínima + plasticidade \\
+Consenso & Prova Complexidade Krajicek & Evita alucinações lógicas \\
+Indicador Metabólico & Landauer Monitoring & Otimiza energia/custo cloud \\
+Interface Mercado & dNFTs + Briefings Auto & Monetização descentralizada \\
+Segurança Física & Q-ESCUDO NR-12 & Validação contra-factual \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Implementação: Mapa de Arquivos}
+
+\begin{lstlisting}[caption=Estrutura do Crate Rust origo-overlay]
+origo-overlay/
+├── Cargo.toml
+└── src/
+    ├── lib.rs              # Exports públicos
+    ├── ast_node.rs         # Definição AstNode, AstNodeKind
+    ├── alpha_context.rs    # Canonização alfa, isomorfismo
+    ├── ast_validator.rs    # Validação limiares Krajicek
+    ├── krajicek_thresholds.rs # Espectro ρ_T, B_T, C_T, R_T
+    ├── quantum_packing.rs  # Quantum Local Packing
+    ├── hash.rs             # Hash alfa-estrutural, Merkle
+    └── error.rs            # Tipos de erro OrigoError
+\end{lstlisting}
+
+\begin{lstlisting}[caption=Scripts Python Principais]
+src/python/
+├── landauer_simulation.py   # Simulação termodinâmica ΔT ↔ ℛₗ
+├── hodge_matrices.py        # Decomposição Hodge em Q_n (n>6)
+└── spectrum1024_tests.py    # Validação bijectiva SPECTRUM-1024
+\end{lstlisting}
+
+\section{Interfaces de Integração}
+
+\subsection{Rust $\leftrightarrow$ Python (PyO3)}
+
+\begin{lstlisting}
+#[pyfunction]
+fn validate_ast(ast_json: &str, rho_t: usize) -> PyResult<String> {
+    let ast: AstNode = serde_json::from_str(ast_json)?;
+    let mut validator = OrigoAstValidator::new_simple(rho_t);
+    let result = validator.validate(&ast)?;
+    Ok(serde_json::to_string(&result)?)
+}
+\end{lstlisting}
+
+\subsection{WASM Sandbox (Planejado v0.4.0)}
+
+\begin{lstlisting}
+// Compilação para WebAssembly
+// wasm-pack build --target web
+// Execução isolada no navegador/Node.js
+\end{lstlisting}
+
+\section{Segurança e Confiabilidade}
+
+\subsection{Modelo de Ameaça}
+
+\begin{itemize}
+    \item \textbf{Mutação Maliciosa:} Bloqueada por $\rhoT$ (Camada 1)
+    \item \textbf{Corrupção de Transporte:} Detectada por hash alfa-estrutural (Camada 2)
+    \item \textbf{Exaustão Energética:} Prevenida por monitoramento $\RL$ (Camada 3)
+    \item \textbf{Roubo de IP:} Impossível por dNFT lineage (Camada 4)
+    \item \textbf{Falha Física:} Prevenida por Q-ESCUDO (Camada 4)
+\end{itemize}
+
+\subsection{Propriedades Garantidas}
+
+\begin{theorem}[Integridade Lógica]
+Se $\texttt{Validate}(ast, \mathcal{K}) = \text{Accept}$, então $ast$ é consistente com o estado atual do sistema.
+\end{theorem}
+
+\begin{theorem}[Terminabilidade Metabólica]
+Para $\gamma > 0$, $\RL(t)$ converge para equilíbrio em tempo finito.
+\end{theorem}
+
+\begin{theorem}[Não-Repúdio de Identidade]
+dNFT lineage garante rastreabilidade completa de autoria de código.
+\end{theorem}
+
+\section{Roadmap de Implementação}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Versão} & \textbf{Foco} & \textbf{Entregáveis} \\
+\midrule
+v0.3.0 & Core Rust & origo-overlay, validador, thresholds \\
+v0.4.0 & WASM Sandbox & Execução isolada, PyO3 bindings \\
+v0.5.0 & Hodge n>6 & Matrizes bloco, equivariância testada \\
+v0.6.0 & SPECTRUM-1024 CI & Prova bijectiva em pipeline \\
+v1.0.0 & Release Estável & MutaCore completo, docs, exemplos \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Conclusão}
+
+O MutaCore estabelece uma nova classe de arquitetura: \textbf{computação orgânico-formal}. Ao integrar:
+\begin{enumerate}
+    \item Limites lógicos (Gödel/Krajicek) — \textit{esqueleto}
+    \item Transporte imutável (AST alfa) — \textit{sistema nervoso}
+    \item Termodinâmica da informação (Landauer) — \textit{metabolismo}
+    \item Governança criptográfica (dNFT/Q-ESCUDO) — \textit{membrana}
+\end{enumerate}
+O Reino Digital deixa de ser repositório estático para se tornar organismo auto-referencial, auto-reparável, em constante \textit{vir-a-ser}.
+
+\bibliographystyle{plain}
+\begin{thebibliography}{99}
+\bibitem{landauer} R. Landauer, ``Irreversibility and Heat Generation...'', 1961.
+\bibitem{krajicek} P. Krajicek, \textit{Bounded Arithmetic...}, Cambridge, 1995.
+\bibitem{goedel} K. Gödel, ``Über formal unentscheidbare Sätze...'', 1931.
+\bibitem{soares2024} E. Soares, ``MutaCore: Cybernetic Organism...'', Reino Digital, 2024.
+\end{thebibliography}
+
+\appendix
+\section{Apêndice: Glossário de Símbolos}
+\begin{tabular}{@{}cl@{}}
+\toprule
+$\rhoT, \BT, \CT, \RT$ & Limiares de Krajicek \\
+$\DeltaT, \DeltaT_i$ & Gap Topológico Narrativo (total, componentes) \\
+$\RL$ & Resíduo de Landauer \\
+$\MT, \ME$ & Variedades Organismo / Ambiente \\
+$Q_n$ & Hipercubo $n$-dimensional \\
+$\laplacian_k$ & Laplaciano de Hodge grau $k$ \\
+$\mathcal{E}$ & Score de Equivariância \\
+dNFT & Dynamic NFT \\
+Q-ESCUDO & Quantum-Enhanced Safety Counterfactual \\
+\bottomrule
+\end{tabular}
+
+\end{document}

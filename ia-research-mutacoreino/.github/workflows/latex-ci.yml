@@ -1,0 +1,127 @@
+name: LaTeX CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'formal/tex/**'
+      - '.github/workflows/latex-ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'formal/tex/**'
+
+jobs:
+  compile:
+    name: Compile LaTeX Documents
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install TeX Live
+        uses: xu-cheng/latex-action@v3
+        with:
+          texlive_version: 2023
+          packages: |
+            amsmath
+            amsfonts
+            amssymb
+            amsthm
+            mathtools
+            graphicx
+            booktabs
+            hyperref
+            cleveref
+            algorithm
+            algpseudocode
+            geometry
+            xcolor
+            tikz
+            tikz-cd
+            listings
+      
+      - name: Compile mutacore_architecture.tex
+        run: |
+          cd formal/tex
+          latexmk -pdf -interaction=nonstopmode -halt-on-error mutacore_architecture.tex
+      
+      - name: Compile landauer_coupling.tex
+        run: |
+          cd formal/tex
+          latexmk -pdf -interaction=nonstopmode -halt-on-error landauer_coupling.tex
+      
+      - name: Compile krajicek_thresholds.tex
+        run: |
+          cd formal/tex
+          latexmk -pdf -interaction=nonstopmode -halt-on-error krajicek_thresholds.tex
+      
+      - name: Compile delta_t_topology.tex
+        run: |
+          cd formal/tex
+          latexmk -pdf -interaction=nonstopmode -halt-on-error delta_t_topology.tex
+      
+      - name: Verify PDFs generated
+        run: |
+          cd formal/tex
+          for f in mutacore_architecture landauer_coupling krajicek_thresholds delta_t_topology; do
+            if [ ! -f "$f.pdf" ]; then
+              echo "❌ $f.pdf not generated"
+              exit 1
+            fi
+            echo "✅ $f.pdf generated ($(wc -c < "$f.pdf") bytes)"
+          done
+
+  spellcheck:
+    name: Spell Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run cspell
+        uses: streetsidesoftware/cspell-action@v6
+        with:
+          files: 'formal/tex/**/*.tex'
+          incremental: true
+
+  linkcheck:
+    name: Check Links
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check external links in LaTeX
+        run: |
+          cd formal/tex
+          # Extract URLs from .tex files and check them
+          grep -r 'https\?://' *.tex | \
+            sed -E 's/.*(https\?:\/\/[^ )}]+).*/\1/' | \
+            sort -u | \
+            while read url; do
+              if ! curl -s -f -I --max-time 10 "$url" > /dev/null; then
+                echo "⚠️ Broken link: $url"
+              fi
+            done
+
+  upload:
+    name: Upload PDF Artifacts
+    runs-on: ubuntu-latest
+    needs: [compile]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: latex-pdfs
+          path: formal/tex/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: formal-docs
+          path: formal/tex/*.pdf
+          retention-days: 90
+
+  notify:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [compile, spellcheck, linkcheck]
+    if: failure()
+    steps:
+      - name: Send notification
+        run: echo "❌ LaTeX CI failed"
