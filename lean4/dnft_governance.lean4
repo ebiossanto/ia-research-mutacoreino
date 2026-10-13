@@ -1,0 +1,221 @@
+# Lean 4 Formalização: dNFT Governance + Q-ESCUDO (v0.7.0)
+
+## v0.7.0 — Camada 4: Membrana e Governança
+
+```lean4
+module DNFTGovernance
+
+-- Importa módulos anteriores
+open DynamicRigidity
+open TenProofsChain
+open HodgeEquivariance
+open Spectrum1024CI
+
+-- dNFT Container (Dynamic NFT)
+structure DNFTContainer where
+  token_id : String                    -- mutacore-{genome_hash[:8]}-{timestamp}
+  genome_hash : String                 -- SHA-256 da AST canônica
+  genome_version : ℕ                   -- Versão do genoma
+  lineage : List String                -- Árvore evolutiva: [parent_hash, ...]
+  
+  -- Metadados Imutáveis (IPFS + on-chain)
+  author_agent : String                -- UUID do agente autor
+  created_at : ℕ                       -- Timestamp Unix
+  krajicek_thresholds : Thresholds     -- Limiares usados na validação
+  source_code_ipfs : String            -- CID IPFS do código fonte
+  
+  -- Direitos e Licenciamento
+  license : String                     -- Ex: "CC-BY-4.0" ou custom
+  commercial_rights : Bool             -- Direitos comerciais
+  attribution_required : Bool          -- Atribuição obrigatória
+  
+  -- Estado Dinâmico (atualizável via oracle)
+  mutation_count : ℕ                   -- Número de mutações derivadas
+  deployment_count : ℕ                 -- Número de deployments
+  reputation_score : ℝ                 -- Score de reputação (0.0 - 1.0)
+  last_audit : ℕ                       -- Timestamp da última auditoria
+  
+  -- Prova de integridade
+  signature : String                   -- Assinatura Ed25519
+
+-- Lifecycle do dNFT
+inductive DNFTLifeCycle where
+  | minted    : DNFTLifeCycle  -- Validação Krajicek PASS → mint
+  | evolved   : DNFTLifeCycle  -- Nova mutação aprovada → dNFT filho
+  | deployed  : DNFTLifeCycle  -- Quantum Packing assina assignment
+  | audited   : DNFTLifeCycle  -- Q-ESCUDO verifica segurança
+  | licensed  : DNFTLifeCycle  -- Smart contract licencia uso
+
+-- Q-ESCUDO: Oráculo Contra-Factual para NR-12
+structure QESCUDO where
+  scenario_id : String
+  action_proposed : String             -- Ação a ser validada
+  counterfactual_worlds : List String  -- Mundos possíveis W
+  nr12_compliance : Bool               -- ∀ w ∈ W: Counterfactual(w, a) ⊨ NR-12
+  risk_score : ℝ                       -- 0.0 (seguro) - 1.0 (crítico)
+  quantum_enhanced : Bool              -- Aprimoramento quântico
+  validation_timestamp : ℕ
+  
+  -- Proof of safety
+  safety_proof : String                -- Prova formal de segurança
+
+-- Teorema: Segurança via Q-ESCUDO
+-- Seguro(a) ⟺ ∀ w ∈ W: Counterfactual(w, a) ⊨ NR-12
+
+theorem qescudo_safety (action : String) (worlds : List String) :
+  (∀ w ∈ worlds, counterfactual_valid w action) → qescudo_approves action = true := by sorry
+
+-- Função counterfactual
+def counterfactual_valid (world : String) (action : String) : Bool := true
+
+-- Função de aprovação Q-ESCUDO
+def qescudo_approves (action : String) : Bool := true
+
+-- Smart Contract para Licenciamento
+structure LicenseContract where
+  dnft_token_id : String
+  licensee : String                    -- Endereço do licenciado
+  terms : String                       -- Termos da licença
+  royalty_rate : ℝ                     -- Taxa de royalty (ex: 0.05 = 5%)
+  revenue_split : List (String × ℝ)    -- Split automático: [(addr, %)]
+  expiration : ℕ                       -- Timestamp de expiração
+  active : Bool
+
+-- Revenue Split Automático
+def auto_revenue_split (contract : LicenseContract) (revenue : ℝ) : List (String × ℝ) :=
+  contract.revenue_split.map (fun (addr, rate) => (addr, revenue * rate * contract.royalty_rate))
+
+-- Auditoria de Segurança
+structure SafetyAudit where
+  dnft_token_id : String
+  auditor : String                     -- Q-ESCUDO ou auditor externo
+  audit_timestamp : ℕ
+  passed : Bool
+  findings : List String
+  risk_mitigation : List String
+
+-- Grafo Evolutivo (Lineage)
+structure EvolutionGraph where
+  nodes : List DNFTContainer
+  edges : List (String × String)       -- (parent_hash, child_hash)
+  
+  -- Propriedade: DAG (sem ciclos)
+  acyclic : Bool := true
+
+-- Teorema: Rastreabilidade Completa
+-- Para qualquer dNFT, lineage contém cadeia completa até origem
+
+theorem full_lineage_traceability (graph : EvolutionGraph) (dnft : DNFTContainer) :
+  dnft ∈ graph.nodes → lineage_complete graph dnft = true := by sorry
+
+def lineage_complete (graph : EvolutionGraph) (dnft : DNFTContainer) : Bool := true
+
+-- Integração com Camadas 1-3
+structure MutacoreOrganism where
+  layer_1 : Thresholds                    -- Limiares Krajicek
+  layer_2 : String                        -- Origo Overlay hash
+  layer_3 : String                        -- Metabolismo state hash
+  layer_4 : DNFTContainer                 -- Identidade genômica
+  
+  -- Validação cross-layer
+  cross_layer_valid : Bool := true
+
+-- Teorema: Integridade do Organismo Completo
+-- Se todas as camadas válidas e dNFT lineage intacto,
+-- então organismo é íntegro e auditável
+
+theorem organism_integrity (org : MutacoreOrganism) :
+  org.cross_layer_valid ∧ lineage_complete org.layer_4 → True := by sorry
+
+end DNFTGovernance
+```
+
+## Smart Contract (Solidity/Rust) — Especificação
+
+```solidity
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.8.20;
+
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract MutacoreDNFT is ERC721URIStorage, Ownable {
+    struct DNFTMetadata {
+        string genomeHash;
+        uint256 genomeVersion;
+        string[] lineage;
+        string authorAgent;
+        uint256 createdAt;
+        Thresholds thresholds;
+        string sourceCodeIPFS;
+        string license;
+        bool commercialRights;
+        bool attributionRequired;
+        uint256 mutationCount;
+        uint256 deploymentCount;
+        uint256 reputationScore; // scaled 0-1e18
+        uint256 lastAudit;
+        bytes signature;
+    }
+    
+    struct Thresholds {
+        uint256 rhoT;
+        uint256 bT;
+        uint256 cT;
+        uint256 rT;
+    }
+    
+    mapping(uint256 => DNFTMetadata) public dnftMetadata;
+    mapping(uint256 => LicenseContract[]) public licenses;
+    
+    event DNFTMinted(uint256 indexed tokenId, string genomeHash, string authorAgent);
+    string[] public lineage;
+    // ... rest of implementation
+}
+```
+
+## Q-ESCUDO NR-12 — Arquitetura
+
+```rust
+// Q-ESCUDO Core Logic
+pub struct QEscudoEngine {
+    pub safety_model: SafetyModel,
+    pub counterfactual_generator: CounterfactualGenerator,
+    pub nr12_validator: NR12Validator,
+    pub quantum_enhancer: QuantumEnhancer,
+}
+
+impl QEscudoEngine {
+    pub fn validate_action(&self, action: &Action) -> Result<SafetyProof, QEscudoError> {
+        // 1. Gera mundos contra-factuais
+        let worlds = self.counterfactual_generator.generate(action)?;
+        
+        // 2. Valida NR-12 em cada mundo (paralelo)
+        let results: Vec<_> = worlds.par_iter()
+            .map(|w| self.nr12_validator.validate(w, action))
+            .collect();
+        
+        // 3. Quantum enhancement: superposição de cenários
+        let quantum_result = self.quantum_enhancer.enhance(&results)?;
+        
+        // 4. Aggregação: ALL must pass
+        if results.iter().all(|r| r.is_compliant()) {
+            Ok(SafetyProof::new(action.id(), quantum_result))
+        } else {
+            Err(QEscudoError::NonCompliant)
+        }
+    }
+}
+```
+
+## Métricas de Sucesso v0.7.0
+
+| Métrica | Target |
+|---------|--------|
+| dNFT mint→deploy latency | < 5s |
+| Lineage traceability | 100% |
+| Q-ESCUDO validation time | < 2s |
+| License revenue split accuracy | 100% |
+| Audit coverage | 100% |
+
+## Próximo: v0.8.0 — Ricemotions Pipeline

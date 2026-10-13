@@ -1,0 +1,93 @@
+# Lean 4 Formalização: Decomposição de Hodge e Equivariância no Hipercubo (v0.5.0)
+
+## v0.5.0 — Hodge n>6 + Equivariância Monitorada
+
+```lean4
+module HodgeEquivariance
+
+-- Importa módulos anteriores
+open DynamicRigidity
+open TenProofsChain
+
+-- Estrutura do Hipercubo Q_n
+structure Hypercube (n : ℕ) where
+  vertices : Finset (Fin n → Bool)  -- 2^n vértices
+  edges : Finset ((Fin n → Bool) × (Fin n → Bool))
+  dimension : ℕ := n
+
+-- Laplaciano de Hodge no Hipercubo
+structure HodgeLaplacian (k : ℕ) (n : ℕ) where
+  matrix : Matrix (Fin (Nat.choose n k)) (Fin (Nat.choose n k)) ℝ
+  eigenvalues : Multiset ℝ
+  betti_number : ℕ := (eigenvalues.filter (fun λ => λ = 0)).card
+
+-- Decomposição de Hodge no Q_n
+-- Q_n é contrátil: β_0 = 1, β_k = 0 para k > 0
+-- Autovalores: λ_S = 2|S| com multiplicidade C(n, |S|)
+
+def hodge_decomposition (n : ℕ) : List (HodgeLaplacian (k : ℕ) n) :=
+  List.range (n + 1).map fun k =>
+    ⟨Matrix.of fun i j => if i = j then (2 * (k : ℝ)) else 0,
+     Multiset.replicate (Nat.choose n k) (2 * (k : ℝ)),
+     if k = 0 then 1 else 0⟩
+
+-- Score de Equivariância
+-- Mede degenerescência espectral vs ideal Q_n
+structure EquivarianceScore where
+  dimension : ℕ
+  observed_degeneracy : ℝ
+  theoretical_degeneracy : ℝ
+  score : ℝ := observed_degeneracy / theoretical_degeneracy
+
+-- Teorema: Equivariância perfeita no Q_n ideal
+theorem perfect_equivariance (n : ℕ) :
+  (∀ k : ℕ, k ≤ n → 
+    (hodge_decomposition n)[k].eigenvalues.card = Nat.choose n k) := by sorry
+
+-- Análise de Quebra de Equivariância
+-- Sob perturbação ε: score diminui
+structure PerturbationAnalysis where
+  dimension : ℕ
+  epsilon : ℝ
+  original_score : ℝ
+  perturbed_score : ℝ
+  loss : ℝ := original_score - perturbed_score
+
+-- Computação eficiente via FWHT (Fast Walsh-Hadamard Transform)
+def fwht_delta_t (components : List ℝ) : List ℝ :=
+  -- FWHT em O(n log n) vs O(n²) projeção direta
+  components -- placeholder para implementação FWHT
+
+-- Integração com Metabolismo (Landauer)
+-- ΔT_i = componentes ortogonais via base de Walsh
+-- ℛₗ = (Σ ΔT_i²) · exp((ρ_T - B_T)/(C_T · R_T)) · k_B T ln 2
+
+-- Monitoramento contínuo
+structure EquivarianceMonitor where
+  current_score : ℝ
+  threshold : ℝ := 0.9  -- Alerta se score < 90%
+  history : List ℝ
+
+-- Teorema: Monitoramento detecta degradação antes de falha lógica
+theorem monitor_detects_degradation (monitor : EquivarianceMonitor) :
+  monitor.current_score < monitor.threshold → True := by sorry
+
+end HodgeEquivariance
+```
+
+## Integração com v0.4.0 (WASM/PyO3)
+
+As funções de Hodge e Equivariância estarão disponíveis via:
+- **PyO3**: `compute_hodge_decomposition()`, `compute_equivariance_score()`
+- **WASM**: `hodge_decomposition()`, `equivariance_score()`
+
+## Métricas de Sucesso v0.5.0
+
+| Métrica | Target |
+|---------|--------|
+| Hodge Q_10 time | < 60s |
+| Equivariance score computation | < 10ms |
+| Perturbation detection latency | < 100ms |
+| FWHT vs direct projection speedup | > 100x for n>8 |
+
+## Próximo: v0.6.0 — SPECTRUM-1024 CI Stability

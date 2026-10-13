@@ -1,0 +1,70 @@
+[package]
+name = "origo-overlay"
+version = "0.5.0"
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/ebiossanto/ia-research-mutacoreino"
+description = "Origo Overlay - Overlays Declarativos Seguros com ASTs Alfa-Estruturais para MutaCore"
+authors = ["Euzébio Soares <ebiossanto@github.com>"]
+categories = ["distributed-systems", "formal-verification", "security", "compilers", "wasm", "scientific-computing"]
+keywords = ["ast", "alpha-equivalence", "krajicek", "formal-verification", "mutacore", "wasm", "pyo3", "hodge", "equivariance", "ricemotions"]
+
+[lib]
+name = "origo_overlay"
+crate-type = ["cdylib", "rlib", "staticlib"]
+
+[features]
+default = ["std"]
+std = []
+wasm = ["std"]
+pyo3 = ["std"]
+gpu = ["std", "nalgebra-gpu"]
+hodge = ["std", "sprs-gpu"]
+equivariance = ["std", "fwht"]
+ricemotions = ["std", "landauer"]
+
+[dependencies]
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true, optional = true }
+tracing = { workspace = true }
+ring = { workspace = true }
+sha2 = { workspace = true }
+rand = { workspace = true }
+zeroize = { workspace = true }
+bincode = { workspace = true }
+postcard = { workspace = true }
+nalgebra = { workspace = true, features = ["serde"] }
+sprs = { workspace = true }
+pyo3 = { version = "0.22", features = ["extension-module"], optional = true }
+wasm-bindgen = { version = "0.2", optional = true }
+serde-wasm-bindgen = { version = "0.6", optional = true }
+js-sys = { version = "0.3", optional = true }
+web-sys = { version = "0.3", optional = true }
+# GPU acceleration
+nalgebra-lapack = { version = "0.1", optional = true }
+faer = { version = "0.20", optional = true }
+# FWHT
+fwht = { version = "0.1", optional = true }
+# Landauer/Ricemotions
+libm = { version = "0.2", optional = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+criterion = { workspace = true }
+wasm-bindgen-test = { version = "0.3", optional = true }
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+panic = "abort"
+
+[profile.wasm]
+lto = true
+opt-level = "s"
+
+[profile.gpu]
+inherits = "release"
+lto = true
